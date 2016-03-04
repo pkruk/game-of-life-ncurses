@@ -6,15 +6,13 @@
 
 using namespace std;
 
-int MAX_SIZE = 56; //50 + 6 na otoczke wokol tablicy, w ten sposob dbam o niewykraczanie poza obszar przy liczeniu i-3, i+3
+int MAX_SIZE = 56; //50 + 6 for our 'borders'
 int start = 3;
 int finish = 3;
 
 int rule(int array[3][3]) {
   /*
-    Funkcja przyjmuje tablice 3x3, na ktorej srodku (na pozycji (1,1))
-    znajduje sie nasz piksel, dla ktorego liczymy sasiedztwo, ktore
-    decyduje o tym czy ma przezyc
+    Filter function, which apply proper rules for our Game of life
    */
   int result = 0; 
   for (int i = 0; i < 3; i++) {
@@ -24,37 +22,34 @@ int rule(int array[3][3]) {
       result += array[i][j];
     }
   }//liczymy ilu ma sasiadow
-  if (array[1][1] == 0 and result == 3) //jesli martwy i ma 3 sasiadow to wraca jako zombie
+  if (array[1][1] == 0 and result == 3) //if is dead, and have 3 neighbours, brick zombie back
     return 1;
-  if (array[1][1] == 1 and (result == 2 or result == 3)) //jest zywy i ma 2 lub 3 sasiadow przezywa
+  if (array[1][1] == 1 and (result == 2 or result == 3)) //will stay alive if have 2 or 3 neighbours
     return 1;
   return 0;
 }
 
 void calculate(int **array, int size ) {
-  // w c++ 11, tablice beda wyzerowane na zero
-  int **tmp = new int *[size]; //tablica tymczasowa do przechowywania poprzednich wyliczonych rezultatów
-  int rules[3][3]; //nasza podtablica sasiadow dla punktu 
+  // c+11, will set it to zero.
+  int **tmp = new int *[size]; //tmp table for keeping next step
+  int rules[3][3]; //subarray, our filter
   for (int i = 0; i < size; tmp[i] = new int [size], i++);//inicjalizacja na zera
   for (int i = start; i < size - finish; i++ ) {
     for (int j = start; j < size - finish; j++) {
-      //obliczanie zasad dla naszej podtablicy 
+      //calculate subarray
       for (int k = i-1; k <= i+1; k++) {
 	for (int l = j-1; l <= j+1; l++) {
-	  rules[k-i+1][l-j+1] = array[k][l]; //indeksy sa dziwne, ale po prostu, chcemy indeksowac od zera, a mamy spory zapas.
+	  rules[k-i+1][l-j+1] = array[k][l]; //crazy indexes, because we indexing from zero
 	}
       }
-      tmp[i][j] = rule(rules); //przypisanie wyniku reguly
+      tmp[i][j] = rule(rules); //set a rule
     }
   }
-  for (int i = 0; i < size ; i++)
-    for (int j = 0; j < size; j++)
-      array[i][j] = tmp[i][j]; //przepisanie tablicy kolejnej na terazniejsza
-
+ memcpy(array, tmp, size * size);
 }
 
 void randomize (int **array, int size ) {
-  //wylosowanie liczb odpowiednio
+  //randomize contenr of array
   for (int i = start; i < size - finish ; i++){
     for (int j = start; j < size - finish; j++ )
       array[i][j] = rand() % 2;
@@ -62,7 +57,7 @@ void randomize (int **array, int size ) {
 }
 
 void print_array(int **array, int size) {
-  //wyprintowanie tablicy, lacznie z 'okienkiem'
+  //console print
   for (int i = 0; i < size; i++){
     for(int j = 0; j < size; j++){
       if ( array[i][j] == 0)
@@ -81,7 +76,6 @@ void ncurses(int **array, int size) {
 	mvaddch(i,j, 10);
       else
 	mvaddch(i,j, 46);
-      
     }
   }
   refresh();
@@ -97,10 +91,8 @@ int main() {
   curs_set(0);
   while (true) {
     ncurses(tmp, MAX_SIZE);
-    //std::cout << "---------------------------------------------------------------\n";
     calculate(tmp, MAX_SIZE);
     ncurses(tmp, MAX_SIZE);
-    //std::cout << "---------------------------------------------------------------\n";
     cin.get();
   }
   endwin();
