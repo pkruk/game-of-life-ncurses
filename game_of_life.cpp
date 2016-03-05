@@ -70,8 +70,12 @@ void print_array(int **array, int size) {
 }
 
 void ncurses(int **array, int size) {
+  init_pair(1, COLOR_BLACK, COLOR_RED);
+  init_pair(2, COLOR_BLACK, COLOR_GREEN);
+  init_pair(3, COLOR_BLACK, COLOR_YELLOW);
   for (int i = 0; i < size; i++) {
     for (int j = 0; j < size; j++) {
+      attron(COLOR_PAIR(rand()%3 + 1));
       if (array[i][j] == 0)
 	mvaddch(i,j, 10);
       else
@@ -88,6 +92,7 @@ int main() {
   for (int i = 0; i < MAX_SIZE; tmp[i] = new int[MAX_SIZE], i++);
   randomize(tmp, MAX_SIZE);
   initscr();
+  start_color();
   curs_set(0);
   while (true) {
     ncurses(tmp, MAX_SIZE);
